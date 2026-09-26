@@ -22,6 +22,7 @@ from pydantic import BaseModel, EmailStr, Field
 load_dotenv()
 
 ROOT = Path(__file__).resolve().parent
+JWT_SECRET = os.getenv("JWT_SECRET") or secrets.token_urlsafe(32)
 app = FastAPI(title="PocketSmart AI", version="1.0.0")
 app.add_middleware(
     CORSMiddleware,
@@ -70,8 +71,7 @@ def _issue_token(email: str) -> str:
     header = _b64(json.dumps({"alg": "HS256", "typ": "JWT"}).encode())
     payload = _b64(json.dumps({"sub": email, "exp": int(time.time()) + 60 * 60 * 24 * 7}).encode())
     signing_input = f"{header}.{payload}"
-    secret = os.getenv("JWT_SECRET", "local-development-secret-change-me").encode()
-    signature = _b64(hmac.new(secret, signing_input.encode(), hashlib.sha256).digest())
+    signature = _b64(hmac.new(JWT_SECRET.encode(), signing_input.encode(), hashlib.sha256).digest())
     return f"{signing_input}.{signature}"
 
 
@@ -83,8 +83,7 @@ def _current_user(
     try:
         header, payload, signature = credentials.credentials.split(".")
         signing_input = f"{header}.{payload}"
-        secret = os.getenv("JWT_SECRET", "local-development-secret-change-me").encode()
-        expected = _b64(hmac.new(secret, signing_input.encode(), hashlib.sha256).digest())
+        expected = _b64(hmac.new(JWT_SECRET.encode(), signing_input.encode(), hashlib.sha256).digest())
         claims = json.loads(base64.urlsafe_b64decode(payload + "=" * (-len(payload) % 4)))
         if not hmac.compare_digest(signature, expected) or claims["exp"] < time.time():
             raise ValueError("Invalid token")

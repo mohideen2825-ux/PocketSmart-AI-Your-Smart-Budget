@@ -20,7 +20,7 @@ Without a Gemini key, all three planners return clearly labeled sample marketpla
 3. Render builds the app and provides a public `onrender.com` URL. The Blueprint creates a secret `JWT_SECRET` and checks `/health`.
 4. To enable Gemini, add `GEMINI_API_KEY` under the service's environment settings and redeploy. Without it, sample recommendations still work.
 
-The free Render service may take a short time to wake after inactivity. This project keeps accounts and server-side history in memory, so they reset on restarts or redeploys; add a persistent database before using it for real users.
+The free Render service may take a short time to wake after inactivity. This project keeps accounts and server-side history in memory, so they reset on restarts or redeploys; add a persistent database before using it for real users. If `JWT_SECRET` is omitted, the app creates a random process-local signing key, so sessions also expire after a restart.
 
 ## API
 
